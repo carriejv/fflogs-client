@@ -107,7 +107,7 @@ const client = new ApolloClient({
 		// 	console.error(`GQL error: ${result.error}`);
 		// 	return;
 		// }
-		console.log(util.inspect(await getFights('qhmtKLzQ9P7nVH8G', true), {showHidden: false, depth: null, colors: true}));
+		console.log(util.inspect(await getFights('qhmtKLzQ9P7nVH8G', {filterTrash: true, filterZeroLength: true}), {showHidden: false, depth: null, colors: true}));
 	}
 	catch(e) {
 		console.error(`Unhandled error: ${e}`);

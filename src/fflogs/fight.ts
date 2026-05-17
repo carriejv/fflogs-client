@@ -77,11 +77,21 @@ export interface FightsResponse extends Report {
 }
 
 /**
+ * Params for a getFights query
+ */
+export interface GetFightsParams {
+    /** If set, filters fights with encounter ID = 0 (flagged as trash by FFLogs) */
+    filterTrash?: boolean
+    /** If set, filters zero-length fights (mispulls, etc.) */
+    filterZeroLength?: boolean
+}
+
+/**
  * Gets fight info from a report
  * @param reportId The FFLogs report code (contained in the URL)
- * @param filterTrash If set, filters fights with encounter ID = 0 (flagged as trash by FFLogs)
+ * @param params Params object for the getFights query
  */
-export async function getFights(reportId: string, filterTrash?: boolean): Promise<FightsResponse> {
+export async function getFights(reportId: string, params?: GetFightsParams): Promise<FightsResponse> {
     const client = getClient();
     const result = await client.query({
         query: gql`
@@ -139,7 +149,12 @@ export async function getFights(reportId: string, filterTrash?: boolean): Promis
     };
     // Remap phases to be per-fight
     for(const fightData of reportData.fights) {
-        if(filterTrash && fightData.encounterID === 0) {
+        // encounterID can be null or 0 for trash
+        if(params?.filterTrash && !fightData.encounterID) {
+            continue;
+        }
+        // combatTime is usually null but sometimes explicitly 0 also
+        if(params?.filterZeroLength && !fightData.combatTime) {
             continue;
         }
         const mappedFight: Fight = {
