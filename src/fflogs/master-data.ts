@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import { buildFilterString } from '../util/gql';
+import { buildFilterString, FilterParams } from '../util/gql';
 import { GetAbilitiesResponse } from './ability';
 import { GetActorsParams, GetActorsResponse } from './actor';
 import { getClient } from './client';
@@ -21,7 +21,7 @@ export async function getMasterData(reportId: string, params?: GetActorsParams):
     const client = getClient();
     const result = await client.query({
         query: gql`
-            query GetFights {
+            query GetMasterData {
                 reportData {
                     report(code: "${reportId}", allowUnlisted: true) {
                         code,
@@ -33,7 +33,7 @@ export async function getMasterData(reportId: string, params?: GetActorsParams):
                                 name,
                                 type
                             },
-                            actors${buildFilterString(params as {[key: string]: string})} {
+                            actors${buildFilterString(params as FilterParams)} {
                                 gameID,
                                 icon,
                                 id,

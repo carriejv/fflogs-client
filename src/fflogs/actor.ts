@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 import { getClient } from './client';
 import { Report } from './report';
-import { buildFilterString } from '../util/gql';
+import { buildFilterString, FilterParams } from '../util/gql';
 
 /**
  * Actor is an entity that takes actions in a report,
@@ -52,13 +52,13 @@ export async function getActors(reportId: string, params?: GetActorsParams): Pro
     const client = getClient();
     const result = await client.query({
         query: gql`
-            query GetFights {
+            query GetActors {
                 reportData {
                     report(code: "${reportId}", allowUnlisted: true) {
                         code,
                         endTime,
                         masterData {
-                            actors${buildFilterString(params as {[key: string]: string})} {
+                            actors${buildFilterString(params as FilterParams)} {
                                 gameID,
                                 icon,
                                 id,

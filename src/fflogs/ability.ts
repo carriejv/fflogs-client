@@ -31,7 +31,7 @@ export async function getAbilities(reportId: string): Promise<GetAbilitiesRespon
     const client = getClient();
     const result = await client.query({
         query: gql`
-            query GetFights {
+            query GetAbilities {
                 reportData {
                     report(code: "${reportId}", allowUnlisted: true) {
                         code,

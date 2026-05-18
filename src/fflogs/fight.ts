@@ -20,8 +20,20 @@ export interface Fight {
     encounterID: number
     /** End timestamp in ms relative to the start of the report */
     endTime: number
+    /** List of enemy NPCs in the fight */
+    enemyNPCs: NPC[]
+    /** List of enemy pets in the fight */
+    enemyPets: NPC[]
+    /** List of enemy player IDs involved in the fight; usually only populated in PvP */
+    enemyPlayers: number[]
     /** Percent completion of the overall fight, including all phases */
     fightPercentage: number
+    /** List of friendly NPCs in the fight */
+    friendlyNPCs: NPC[]
+    /** List of friendly pets in the fight */
+    friendlyPets: NPC[]
+    /** List of player IDs involved in the fight */
+    friendlyPlayers: number[]
     /** ID number of the fight */
     id: number
     /** True if a live log of a fight is not yet completed */
@@ -44,6 +56,23 @@ export interface Fight {
     startTime: number
     /** Timestamp of a called wipe in ms relative to the start of the report */
     wipeCalledTime: number
+}
+
+/**
+ * NPC is an NPC involved in a fight. The id can be cross-referenced with the actors
+ * query to look up additional info.
+ */
+export interface NPC {
+    /** Game id of the npc */
+    gameID: number
+    /** FFLogs id number of the npc */
+    id: number
+    /** Number of copied of the npc spawned during the fight */
+    instanceCount: number
+    /** Number of unique spawning events for the npc */
+    groupCount: number
+    /** If set, this npc is the pet of the npc with the given id */
+    petOwner?: number
 }
 
 /**
@@ -106,7 +135,37 @@ export async function getFights(reportId: string, params?: GetFightsParams): Pro
                             difficulty,
                             encounterID,
                             endTime,
+                            enemyNPCs {
+                                gameID,
+                                id,
+                                instanceCount,
+                                groupCount,
+                                petOwner
+                            },
+                            enemyPets {
+                                gameID,
+                                id,
+                                instanceCount,
+                                groupCount,
+                                petOwner
+                            },
+                            enemyPlayers,
                             fightPercentage,
+                            friendlyNPCs {
+                                gameID,
+                                id,
+                                instanceCount,
+                                groupCount,
+                                petOwner
+                            },
+                            friendlyPets {
+                                gameID,
+                                id,
+                                instanceCount,
+                                groupCount,
+                                petOwner
+                            },
+                            friendlyPlayers,
                             id,
                             inProgress,
                             kill,
@@ -165,7 +224,13 @@ export async function getFights(reportId: string, params?: GetFightsParams): Pro
             difficulty: fightData.difficulty,
             encounterID: fightData.encounterID,
             endTime: fightData.endTime,
+            enemyNPCs: fightData.enemyNPCs,
+            enemyPets: fightData.enemyPets,
+            enemyPlayers: fightData.enemyPlayers,
             fightPercentage: fightData.fightPercentage,
+            friendlyNPCs: fightData.friendlyNPCs,
+            friendlyPets: fightData.friendlyPets,
+            friendlyPlayers: fightData.friendlyPlayers,
             id: fightData.id,
             inProgress: fightData.inProgress,
             kill: fightData.kill,

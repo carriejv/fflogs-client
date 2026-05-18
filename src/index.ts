@@ -15,103 +15,33 @@
 */
 
 import util from 'util';
-import { FFLogsClientAuthenticator } from './auth/client-authenticator';
-import { ApolloClient, HttpLink, InMemoryCache, gql } from '@apollo/client';
-import { SetContextLink } from '@apollo/client/link/context';
-import { FFLOGS_HOST, FFLOGS_PATH_API } from './constants/constants';
 import { getFights } from './fflogs/fight';
 import { getActors } from './fflogs/actor';
-import { getMasterData } from './fflogs/master-data';
-import { getAbilities } from './fflogs/ability';
-
-// TODO: Make less stupid
-const clientId = process.env['FFLOGS_ID'];
-if(!clientId) {
-	throw new Error('FFLOGS_ID must be set');
-}
-const clientSecret = process.env['FFLOGS_SECRET'];
-if(!clientSecret) {
-	throw new Error('FFLOGS_SECRET must be set');
-}
-const auth = new FFLogsClientAuthenticator(clientId, clientSecret);
-
-const authLink = new SetContextLink(async ({ headers }) => {
-  const token = await auth.token();
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
-});
-
-const client = new ApolloClient({
-	link: authLink.concat(new HttpLink({ uri: `https://${FFLOGS_HOST}${FFLOGS_PATH_API}`})),
-	cache: new InMemoryCache()
-});
+import { EventDataType, getEvents, GetEventsParams } from './fflogs/event';
+import { buildFilterString, FilterParams } from './util/gql';
 
 (async () => {
 	try {
-		// const result = await client.query({
-		// 	query: gql`
-		// 		query GetReport {
-		// 			reportData {
-		// 				report(code: "qhmtKLzQ9P7nVH8G", allowUnlisted: true) {
-		// 					endTime,
-		// 					fights {
-		// 						bossPercentage,
-		// 						combatTime,
-		// 						encounterID,
-		// 						endTime,
-		// 						fightPercentage,
-		// 						gameZone {
-		// 							name
-		// 						},
-		// 						id,
-		// 						inProgress,
-		// 						kill,
-		// 						lastPhaseAsAbsoluteIndex,
-		// 						name,
-		// 						startTime,
-		// 						wipeCalledTime
-		// 					},
-		// 					masterData {
-		// 						abilities {
-		// 							gameID,
-		// 							icon,
-		// 							name,
-		// 							type
-		// 						},
-		// 						actors {
-		// 							gameID,
-		// 							icon,
-		// 							id,
-		// 							name,
-		// 							petOwner,
-		// 							server,
-		// 							subType,
-		// 							type
-		// 						}
-		// 					},
-		// 					phases {
-		// 						phases {
-		// 							encouterID,
-		// 							id,
-		// 							name
-		// 						}
-		// 					},
-		// 					startTime,
-		// 					title
-		// 				}
-		// 			}
-		// 		}`
-		// });
-		// if(result.error) {
-		// 	console.error(`GQL error: ${result.error}`);
-		// 	return;
-		// }
-		console.log(util.inspect(await getFights('qhmtKLzQ9P7nVH8G', {filterTrash: true, filterZeroLength: true}), {showHidden: false, depth: null, colors: true}));
-		console.log(util.inspect(await getAbilities('qhmtKLzQ9P7nVH8G'), {showHidden: false, depth: null, colors: true}));
+		const fights = await getFights('t7GrpLcBXfRhN1P3');
+		const fight = fights.fights[4];
+		console.log('Querying fight...');
+		console.log(util.inspect(fight, {showHidden: false, depth: null, colors: true}));
+
+		const actors = await getActors('t7GrpLcBXfRhN1P3');
+		const kali = actors.actors.find(e => e.name === 'Kali Liada' && fight.friendlyPlayers.includes(e.id));
+		console.log('Querying actor...');
+		console.log(util.inspect(kali, {showHidden: false, depth: null, colors: true}));
+
+		const params: GetEventsParams = {
+			dataType: EventDataType.DamageDone,
+			fightIDs: [fight.id],
+			sourceID: kali?.id
+		};
+		console.log('Using params...');
+		console.log(buildFilterString(params as FilterParams, ['dataType']));
+		
+		const events = await getEvents('t7GrpLcBXfRhN1P3', params);
+		console.log(util.inspect(events, {showHidden: false, depth: null, colors: true}));
 	}
 	catch(e) {
 		console.error(`Unhandled error: ${e}`);
