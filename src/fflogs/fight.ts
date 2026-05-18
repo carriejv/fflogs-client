@@ -70,13 +70,6 @@ export interface PhaseTransition {
 }
 
 /**
- * The response given by a getFights query
- */
-export interface FightsResponse extends Report {
-    fights: Fight[]
-}
-
-/**
  * Params for a getFights query
  */
 export interface GetFightsParams {
@@ -87,11 +80,18 @@ export interface GetFightsParams {
 }
 
 /**
+ * The response given by a getFights query
+ */
+export interface GetFightsResponse extends Report {
+    fights: Fight[]
+}
+
+/**
  * Gets fight info from a report
  * @param reportId The FFLogs report code (contained in the URL)
  * @param params Params object for the getFights query
  */
-export async function getFights(reportId: string, params?: GetFightsParams): Promise<FightsResponse> {
+export async function getFights(reportId: string, params?: GetFightsParams): Promise<GetFightsResponse> {
     const client = getClient();
     const result = await client.query({
         query: gql`
@@ -139,7 +139,7 @@ export async function getFights(reportId: string, params?: GetFightsParams): Pro
         throw new Error (`GQL error: ${result.error}`);
     }
     const reportData: any = (result.data as any).reportData.report;
-    const response: FightsResponse = {
+    const response: GetFightsResponse = {
         code: reportData.code,
         fights: [],
         endTime: reportData.endTime,
