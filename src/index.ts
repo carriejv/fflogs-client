@@ -21,6 +21,8 @@ import { SetContextLink } from '@apollo/client/link/context';
 import { FFLOGS_HOST, FFLOGS_PATH_API } from './constants/constants';
 import { getFights } from './fflogs/fight';
 import { getActors } from './fflogs/actor';
+import { getMasterData } from './fflogs/master-data';
+import { getAbilities } from './fflogs/ability';
 
 // TODO: Make less stupid
 const clientId = process.env['FFLOGS_ID'];
@@ -109,7 +111,7 @@ const client = new ApolloClient({
 		// 	return;
 		// }
 		console.log(util.inspect(await getFights('qhmtKLzQ9P7nVH8G', {filterTrash: true, filterZeroLength: true}), {showHidden: false, depth: null, colors: true}));
-		console.log(util.inspect(await getActors('qhmtKLzQ9P7nVH8G'), {showHidden: false, depth: null, colors: true}));
+		console.log(util.inspect(await getAbilities('qhmtKLzQ9P7nVH8G'), {showHidden: false, depth: null, colors: true}));
 	}
 	catch(e) {
 		console.error(`Unhandled error: ${e}`);

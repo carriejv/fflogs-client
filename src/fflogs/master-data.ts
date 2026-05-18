@@ -1,54 +1,23 @@
 import { gql } from '@apollo/client';
-import { getClient } from './client';
-import { Report } from './report';
 import { buildFilterString } from '../util/gql';
+import { GetAbilitiesResponse } from './ability';
+import { GetActorsParams, GetActorsResponse } from './actor';
+import { getClient } from './client';
 
 /**
- * Actor is an entity that takes actions in a report,
- * which can be a player character or npc.
+ * The response given by a getMasterData query
+ * Master data includes all actor and ability references
+ * used in a report. This is equivalent to a `getActors`
+ * and `getAbilities` in a single query.
  */
-export interface Actor {
-    /** The game ID of the actor */
-    gameID: number
-    /** Icon name used internally by FFLogs */
-    icon: string
-    /** FFLogs id of the actor */
-    id: number
-    /** Name of the actor */
-    name: string
-    /** If set, this actor is a pet owned by the actor with the given id */
-    petOwner?: number
-    /** The server of a player character actor */
-    server?: string
-    /** The subtype of the actor. This is the class of a player character, or a descriptive type ie 'boss' for NPCs */
-    subType: string
-    /** Actor type, typically 'player' 'pet' or 'npc' */
-    type: string
-}
+export type GetMasterDataResponse = GetActorsResponse & GetAbilitiesResponse;
 
 /**
- * Params for a getActors query
- */
-export interface GetActorsParams {
-    /** If set, filters to actors with the matching type */
-    filterType?: string
-    /** If set, filters to actors with the matching subtype */
-    filterSubtype?: string
-}
-
-/**
- * The response given by a getActors query
- */
-export interface GetActorsResponse extends Report {
-    actors: Actor[]
-}
-
-/**
- * Gets actor info from a report
+ * Gets masterData from a report
  * @param reportId The FFLogs report code (contained in the URL)
  * @param params Params object for the getActors query
  */
-export async function getActors(reportId: string, params?: GetActorsParams): Promise<GetActorsResponse> {
+export async function getMasterData(reportId: string, params?: GetActorsParams): Promise<GetMasterDataResponse> {
     const client = getClient();
     const result = await client.query({
         query: gql`
@@ -58,6 +27,12 @@ export async function getActors(reportId: string, params?: GetActorsParams): Pro
                         code,
                         endTime,
                         masterData {
+                            abilities {
+                                gameID,
+                                icon,
+                                name,
+                                type
+                            },
                             actors${buildFilterString(params as {[key: string]: string})} {
                                 gameID,
                                 icon,
@@ -80,6 +55,7 @@ export async function getActors(reportId: string, params?: GetActorsParams): Pro
     }
     const reportData: any = (result.data as any).reportData.report;
     return {
+        abilities: reportData.masterData.abilities,
         actors: reportData.masterData.actors,
         code: reportData.code,
         endTime: reportData.endTime,
